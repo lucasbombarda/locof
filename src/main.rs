@@ -5,10 +5,6 @@ use std::io::Read;
 use std::process;
 use walkdir::WalkDir;
 
-/// locof aka lines of code of:
-/// a tool that takes a project directory and returns the summary of the
-/// lines of code of each extension in the project
-
 fn count_lines(file_path: &str) -> u64 {
     let file = std::fs::File::open(file_path).unwrap();
     let mut reader = BufReader::new(file);
@@ -26,8 +22,8 @@ fn count_lines(file_path: &str) -> u64 {
 }
 
 fn locof(file_path: String) {
-    let mut total_lines = 0;
-    let mut total_files = 0;
+    let mut total_lines: u64 = 0;
+    let mut total_files: u64 = 0;
     let mut lines_of_code = HashMap::new();
 
     for entry in WalkDir::new(file_path).into_iter().filter_map(|e| e.ok()) {
@@ -50,6 +46,10 @@ fn locof(file_path: String) {
     println!("Lines of code by extension: {:?}", lines_of_code);
 }
 
+
+/// locof aka lines of code of:
+/// a tool that takes a project directory and returns the summary of the
+/// lines of code of each extension in the project
 fn main() {
     let args: Vec<String> = env::args().collect();
 
