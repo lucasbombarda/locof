@@ -1,15 +1,26 @@
 use std::collections::HashMap;
 use std::env;
-use std::io::BufReader;
-use std::io::Read;
+use std::fs::File;
+use std::io::{BufReader, Read};
 use std::process;
 use walkdir::WalkDir;
 
+mod extensions;
+use extensions::FileExtension;
+
+struct Results {
+    file: FileExtension,
+    code_lines: u64,
+    blank_lines: u64,
+}
+
 fn count_lines(file_path: &str) -> u64 {
-    let file = std::fs::File::open(file_path).unwrap();
+    let file = File::open(file_path).unwrap();
     let mut reader = BufReader::new(file);
     let mut count = 0;
     let mut content = String::new();
+
+    println!("Counting lines of code in: {}", file_path);
 
     reader.read_to_string(&mut content).unwrap();
 
@@ -28,16 +39,22 @@ fn locof(file_path: String) {
 
     for entry in WalkDir::new(file_path).into_iter().filter_map(|e| e.ok()) {
         if entry.file_type().is_file() {
-            let mut ext = "no extension";
+            let mut ext = "".to_string();
+
             if let Some(extension) = entry.path().extension() {
-                ext = extension.to_str().unwrap();
+                ext = extension.to_str().unwrap().to_string();
             }
 
-            let count = count_lines(entry.path().to_str().unwrap());
-            total_lines += count;
-            total_files += 1;
-            let counter = lines_of_code.entry(ext.to_string()).or_insert(0);
-            *counter += count;
+            if let Some(_) = extensions::get_extensions()
+                .iter()
+                .find(|e| e.extensions.contains(&ext))
+            {
+                let count = count_lines(entry.path().to_str().unwrap());
+                total_lines += count;
+                total_files += 1;
+                let counter = lines_of_code.entry(ext.to_string()).or_insert(0);
+                *counter += count;
+            }
         }
     }
 
@@ -45,7 +62,6 @@ fn locof(file_path: String) {
     println!("Total lines of code: {}", total_lines);
     println!("Lines of code by extension: {:?}", lines_of_code);
 }
-
 
 /// locof aka lines of code of:
 /// a tool that takes a project directory and returns the summary of the
