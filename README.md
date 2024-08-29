@@ -28,6 +28,16 @@ Then, you can run:
 $ locof <path>
 ```
 
+# Performance
+Now, it's single-threaded and it's not optimized, and still is WAY faster than cloc.
+Note that locof isn't considering the same things as cloc, like .gitignore files, for example.
+Here are some benchmarks on Linux kernel source code:
+- locof:
+![performance](assets/locof.png)
+
+- cloc:
+![performance](assets/cloc.png)
+
 # Roadmap
 - [ ] Count the lines of code, comments and blank lines in a given directory
 - [ ] Add `--exclude-dir` and `--exclude-ext` flags
