@@ -5,9 +5,27 @@ This is not meant to be a replacement for cloc.
 
 Note that this is an early-stage prototype, so functionality may be limited, and breaking changes may occur as development progresses.
 
-# Usage
+# Installation and Usage
+Ensure that you have Rust installed on your machine. If you don't have it, you can install it by following the instructions on the [official website](https://www.rust-lang.org/tools/install).
+
+Clone this repository and run the following command:
 ```bash
-locof <path>
+$ git clone --depth=1 https://github.com/lucasbombarda/locof
+```
+
+In Windows or Linux, if you want to run the tool without installing it, you can run:
+```bash
+$ cargo run --release -- <path>
+```
+
+Alternatively, you can install the tool by running the following command:
+```bash
+$ cargo install --path .
+```
+
+Then, you can run:
+```bash
+$ locof <path>
 ```
 
 # Roadmap
