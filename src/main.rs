@@ -1,5 +1,6 @@
 use clap::Parser;
 use encoding::{all::UTF_8, DecoderTrap, Encoding};
+use simdutf8::basic::from_utf8;
 use std::collections::HashMap;
 use std::{error::Error, fs::File, io::prelude::*, result};
 use walkdir::WalkDir;
@@ -14,35 +15,54 @@ struct Cli {
     path: String,
 }
 
-fn count_lines(file_path: String) -> usize {
+fn count_lines(file_path: String) -> Option<usize> {
     let mut file = File::open(file_path).unwrap();
     let mut buff = Vec::new();
     file.read_to_end(&mut buff).unwrap();
+    // check if it is a valid utf-8 file
+    if from_utf8(&buff).is_err() {
+        return None;
+    }
     let res = UTF_8.decode(&buff, DecoderTrap::Ignore);
-    res.unwrap().lines().count()
+    Some(res.unwrap().lines().count())
 }
 
 fn exec(path: String) -> Result<()> {
     println!("Counting...\n");
     let mut res: HashMap<String, usize> = HashMap::new();
-    for entry in WalkDir::new(path)
+    let entries = WalkDir::new(path)
         .into_iter()
         .filter_map(|e| e.ok())
         .filter(|e| e.path().is_file())
-    {
+        .collect::<Vec<_>>();
+
+    let len_entries = entries.len();
+
+    for (idx, entry) in entries.into_iter().enumerate() {
         let path = entry.path().display().to_string();
         if let Some(file_type) = entry.path().extension() {
-            let lines = count_lines(path);
-            res.entry(file_type.to_str().unwrap().to_string())
-                .and_modify(|qty| *qty += lines)
-                .or_insert(lines);
+            if let Some(lines) = count_lines(path) {
+                print!("\r{} of {} files", idx + 1, len_entries);
+                res.entry(file_type.to_str().unwrap().to_string())
+                    .and_modify(|qty| *qty += lines)
+                    .or_insert(lines);
+            }
         }
     }
 
-    println!("Total raw LOC: {}\n", res.values().sum::<usize>());
-    res.iter().for_each(|(k, v)| {
-        println!("{k}: {v}");
-    });
+    let total = res.values().sum::<usize>();
+    let mut v: Vec<_> = res.into_iter().collect();
+    v.sort_by(|a, b| b.1.cmp(&a.1));
+    println!("\n\nResults:");
+    for (ext, lines) in v {
+        println!(
+            "{}: {} {:.4}%",
+            ext,
+            lines,
+            (lines as f64 / total as f64) * 100.0
+        );
+    }
+    println!("\nTotal raw LOC: {}\n", total);
 
     Ok(())
 }
