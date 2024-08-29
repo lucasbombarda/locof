@@ -7,3 +7,4 @@ edition = "2021"
 clap = { version = "4", features = ["derive"] }
 walkdir = "2"
 encoding = "0.2"
+simdutf8 = "0.1"
